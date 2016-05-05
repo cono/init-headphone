@@ -4,8 +4,9 @@ from __future__ import print_function
 import subprocess
 import os
 import sys
+import re
 
-SUPPORTED_SYSTEM_PRODUCT_NAMES = ["W230SS"]
+SUPPORTED_SYSTEM_PRODUCT_NAMES = ["W230SS", "SKY MX5"]
 SUPPORTED_I2C_BUS_NAMES = ["SMBus I801 adapter at f040"]
 I2C_CLASS_PATH = "/sys/class/i2c-dev"
 CMDLINE_PATH = "/proc/cmdline"
@@ -28,8 +29,7 @@ DATA = [
 
 def get_system_product_name():
     try:
-        return subprocess.check_output(["dmidecode", "-s", "system-product-name"]
-                                       ).strip()
+        return "\n".join([line for line in subprocess.check_output(["dmidecode", "-s", "system-product-name"]).splitlines() if not line.startswith('#')]).strip()
     except OSError:
         print("Error: dmidecode is not installed", file=sys.stderr)
         return False
@@ -141,7 +141,6 @@ def init_headphone():
         return False
     for device_cmd, device_data in DATA:
         i2c_bus.write_byte_data(DEVICE_ADDRESS, device_cmd, device_data)
-    i2c_bus.close()
     return True
 
 if __name__ == "__main__":
